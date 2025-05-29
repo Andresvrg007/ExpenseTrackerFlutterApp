@@ -5,11 +5,17 @@ import jwt from 'jsonwebtoken';
 // Helper function to get user ID from token
 const getUserIdFromToken = (req) => {
     const token = req.cookies.token || req.headers.authorization?.split(' ')[1];
+    
     if (!token) {
         throw new Error('Token not provided');
     }
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    return decoded.id;
+    
+    try {
+        const decoded = jwt.verify(token, process.env.JWT_SECRET);
+        return decoded.userId || decoded.id;
+    } catch (error) {
+        throw new Error('Invalid token');
+    }
 };
 
 // Create a new category
