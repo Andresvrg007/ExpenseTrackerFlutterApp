@@ -27,7 +27,7 @@ class _LoginViewState extends State<LoginView> {
     super.initState();
     // Inicializar AuthViewModel cuando se carga la pantalla
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      context.read<AuthViewModel>().initializeAuth();
+      context.read<AuthViewModel>().checkAuthStatus();
     });
   }
 
@@ -175,7 +175,8 @@ class _LoginViewState extends State<LoginView> {
                                     ),
                                     filled: true,
                                     fillColor: Colors.grey[50],
-                                  ),                                  validator: (value) {
+                                  ),
+                                  validator: (value) {
                                     // Validación básica - después agregaremos más lógica
                                     if (value == null || value.isEmpty) {
                                       return 'Please enter your password';
@@ -327,19 +328,7 @@ class _LoginViewState extends State<LoginView> {
 
   // Función temporal para "Forgot Password"
   void _showForgotPasswordDialog() {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Forgot Password'),
-        content: const Text('This feature will be implemented later.'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('OK'),
-          ),
-        ],
-      ),
-    );
+    Navigator.pushNamed(context, '/forgot-password');
   }
 
   // Función para navegación a registro

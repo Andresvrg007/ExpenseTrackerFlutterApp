@@ -42,7 +42,7 @@ class PDFReportViewModel extends ChangeNotifier {
     }
   }
 
-  /// ✅ AGREGAR ESTE MÉTODO: Cerrar último reporte (para generar otro)
+  ///  Cerrar último reporte (para generar otro)
   void clearLastReport() {
     _lastReport = null;
     notifyListeners();

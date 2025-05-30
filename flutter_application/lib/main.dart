@@ -8,6 +8,7 @@ import 'viewmodels/pdf_report_viewmodel.dart'; // ✅ AGREGAR ESTA LÍNEA
 import 'views/login_view.dart';
 import 'views/register_view.dart';
 import 'views/dashboard_view_simple.dart';
+import 'forgot_password_view.dart';
 
 void main() {
   runApp(MyApp());
@@ -32,7 +33,8 @@ class MyApp extends StatelessWidget {
         ChangeNotifierProvider<TransactionViewModel>(
           create: (context) => TransactionViewModel(),
         ),
-        ChangeNotifierProvider<PDFReportViewModel>( // ✅ AGREGAR ESTA LÍNEA
+        ChangeNotifierProvider<PDFReportViewModel>(
+          // ✅ AGREGAR ESTA LÍNEA
           create: (context) => PDFReportViewModel(), // ✅ AGREGAR ESTA LÍNEA
         ), // ✅ AGREGAR ESTA LÍNEA
       ],
@@ -47,6 +49,8 @@ class MyApp extends StatelessWidget {
           '/login': (context) => LoginView(),
           '/register': (context) => RegisterView(),
           '/dashboard': (context) => DashboardView(),
+          '/forgot-password': (context) =>
+              const ForgotPasswordView(), // ✅ AGREGAR ESTA LÍNEA
         },
         debugShowCheckedModeBanner: false,
       ),

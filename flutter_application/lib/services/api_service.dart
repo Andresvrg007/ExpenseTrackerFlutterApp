@@ -6,7 +6,7 @@ import '../models/user_model.dart';
 class ApiService {
   // URL base de tu backend (cambiar por tu IP/dominio)
   // Para dispositivo físico usa la IP real de tu PC, para emulador usa 10.0.2.2
-  static const String baseUrl = 'http://10.0.0.25:5000/api';
+  static const String baseUrl = 'http://10.0.0.23:5000/api';
 
   // Headers comunes para todas las peticiones
   Map<String, String> get _headers => {'Content-Type': 'application/json'};
@@ -356,9 +356,11 @@ class ApiService {
   Future<List<Map<String, dynamic>>> getTransactions() async {
     try {
       print('🔄 ApiService.getTransactions called');
-      
+
       final token = await _getToken();
-      print('🔑 Token: ${token?.substring(0, 20)}...'); // Solo primeros 20 caracteres
+      print(
+        '🔑 Token: ${token?.substring(0, 20)}...',
+      ); // Solo primeros 20 caracteres
 
       if (token == null || token.isEmpty) {
         print('❌ No token found');
@@ -366,7 +368,7 @@ class ApiService {
       }
 
       print('📤 Making GET request to: $baseUrl/transactions');
-      
+
       final response = await http.get(
         Uri.parse('$baseUrl/transactions'),
         headers: await _authHeaders,

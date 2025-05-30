@@ -1,149 +1,154 @@
-import 'package:flutter/material.dart';
-import '../models/user_model.dart';
+import 'package:flutter/foundation.dart';
+import 'dart:convert';
+import 'package:http/http.dart' as http;
 import '../services/api_service.dart';
 
-// ViewModel para manejar autenticación (login, registro, logout)
 class AuthViewModel extends ChangeNotifier {
   final ApiService _apiService = ApiService();
 
-  // Estado del usuario actual
-  UserModel? _currentUser;
-  UserModel? get currentUser => _currentUser;
-
-  // Estados de carga
   bool _isLoading = false;
-  bool get isLoading => _isLoading;
-
-  bool _isLoggedIn = false;
-  bool get isLoggedIn => _isLoggedIn;
-
-  // Mensajes de error
   String? _errorMessage;
+  bool _isLoggedIn = false;
+  String? _userEmail;
+
+  // Getters
+  bool get isLoading => _isLoading;
   String? get errorMessage => _errorMessage;
+  bool get isLoggedIn => _isLoggedIn;
+  String? get userEmail => _userEmail;
 
-  // Inicializar: verificar si hay token guardado
-  Future<void> initializeAuth() async {
-    _setLoading(true);
-    try {
-      // Verificar si hay un token válido guardado
-      final hasValidToken = await _apiService.hasValidToken();
-      if (hasValidToken) {
-        // Si hay token válido, obtener perfil del usuario
-        await _loadUserProfile();
-      }
-    } catch (e) {
-      _setError('Error al inicializar: $e');
-    } finally {
-      _setLoading(false);
-    }
-  }
-
-  // Realizar login
-  Future<bool> login(String email, String password) async {
-    if (email.isEmpty || password.isEmpty) {
-      _setError('Email y contraseña son requeridos');
-      return false;
-    }
-
-    _setLoading(true);
-    _clearError();    try {
-      // Llamar al endpoint de login
-      final loginResponse = await _apiService.login(email, password);
-
-      // Si el login es exitoso, solo marcar como logueado
-      // Por ahora no cargaremos el perfil automáticamente
-      _setLoggedIn(true);
-      print('Login exitoso: $loginResponse'); // Para debug
-      return true;
-    } catch (e) {
-      _setError('Error de login: $e');
-      return false;
-    } finally {
-      _setLoading(false);
-    }
-  }
-
-  // Realizar registro
-  Future<bool> register(String name, String email, String password) async {
-    if (name.isEmpty || email.isEmpty || password.isEmpty) {
-      _setError('Todos los campos son requeridos');
-      return false;
-    }    if (password.length < 5) {
-      _setError('La contraseña debe tener al menos 5 caracteres');
-      return false;
-    }
-
-    _setLoading(true);
-    _clearError();
-
-    try {
-      // Llamar al endpoint de registro
-      await _apiService.register(name, email, password);
-
-      // Después del registro exitoso, hacer login automático
-      return await login(email, password);
-    } catch (e) {
-      _setError('Error de registro: $e');
-      return false;
-    } finally {
-      _setLoading(false);
-    }
-  }
-
-  // Realizar logout
-  Future<void> logout() async {
-    _setLoading(true);
-    try {
-      // Llamar al endpoint de logout
-      await _apiService.logout();
-
-      // Limpiar estado local
-      _currentUser = null;
-      _setLoggedIn(false);
-      _clearError();
-    } catch (e) {
-      // Incluso si falla el logout en el servidor, limpiar estado local
-      _currentUser = null;
-      _setLoggedIn(false);
-      _setError('Error al cerrar sesión: $e');
-    } finally {
-      _setLoading(false);
-    }
-  }
-
-  // Cargar perfil del usuario desde la API
-  Future<void> _loadUserProfile() async {
-    try {
-      _currentUser = await _apiService.getUserProfile();
-      _setLoggedIn(true);
-    } catch (e) {
-      throw Exception('Error al cargar perfil: $e');
-    }
-  }
-
-  // Métodos privados para manejar estado
-  void _setLoading(bool loading) {
+  // Setters privados
+  void setLoading(bool loading) {
     _isLoading = loading;
-    notifyListeners(); // Notificar a la UI que el estado cambió
-  }
-
-  void _setLoggedIn(bool loggedIn) {
-    _isLoggedIn = loggedIn;
     notifyListeners();
   }
 
-  void _setError(String error) {
+  void setError(String? error) {
     _errorMessage = error;
     notifyListeners();
   }
 
-  void _clearError() {
+  void clearError() {
     _errorMessage = null;
     notifyListeners();
   }
 
-  // Limpiar mensaje de error manualmente (útil para la UI)
-  void clearError() {
-    _clearError();
+  void clearErrorMessage() {
+    _errorMessage = null;
+    notifyListeners();
+  }
+
+  // Verificar estado de autenticación al iniciar
+  Future<void> checkAuthStatus() async {
+    // Implementar verificación de token si es necesario
+    notifyListeners();
+  }
+
+  // Login
+  Future<bool> login(String email, String password) async {
+    try {
+      setLoading(true);
+      clearError();
+
+      final response = await _apiService.login(email, password);
+
+      if (response['success'] == true) {
+        _isLoggedIn = true;
+        _userEmail = email;
+        return true;
+      } else {
+        setError(response['message'] ?? 'Login failed');
+        return false;
+      }
+    } catch (e) {
+      setError('Login error: ${e.toString()}');
+      return false;
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  // Register
+  Future<bool> register(String name, String email, String password) async {
+    try {
+      setLoading(true);
+      clearError();
+
+      final response = await _apiService.register(name, email, password);
+
+      // ✅ DETECTAR ÉXITO CORRECTAMENTE - CUALQUIER RESPUESTA QUE INDIQUE REGISTRO EXITOSO
+      final message = response['message']?.toString().toLowerCase() ?? '';
+      final isSuccess =
+          response['success'] == true ||
+          message.contains('registrado') ||
+          message.contains('exitoso') ||
+          message.contains('successfully') ||
+          message.contains('created') ||
+          response.containsKey('user') ||
+          (response.containsKey('message') && !response.containsKey('error'));
+
+      if (isSuccess) {
+        clearError();
+
+        await Future.delayed(const Duration(milliseconds: 100));
+
+        final loginSuccess = await login(email, password);
+        if (loginSuccess) {
+          return true;
+        } else {
+          // Si auto-login falla, aún considerarlo éxito de registro
+          return true;
+        }
+      } else {
+        // ✅ SOLO ES ERROR SI REALMENTE HAY UN ERROR
+        final errorMsg =
+            response['error'] ?? response['message'] ?? 'Registration failed';
+        setError(errorMsg);
+        return false;
+      }
+    } catch (e) {
+      setError('Registration error: ${e.toString()}');
+      return false;
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  // Logout
+  Future<void> logout() async {
+    await _apiService.logout();
+    _isLoggedIn = false;
+    _userEmail = null;
+    clearError();
+    notifyListeners();
+  }
+
+  // ✅ AGREGAR ESTE MÉTODO - Forgot Password
+  Future<bool> forgotPassword(String email, String newPassword) async {
+    try {
+      setLoading(true);
+      clearError();
+
+      // Hacer petición HTTP directa al backend
+      final response = await http.post(
+        Uri.parse('http://10.0.2.23:5000/api/forgot-password'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({'email': email, 'newPassword': newPassword}),
+      );
+
+      final data = jsonDecode(response.body);
+
+      if (response.statusCode == 200) {
+        return true;
+      } else {
+        setError(data['error'] ?? 'Failed to reset password');
+        return false;
+      }
+    } catch (e) {
+      setError('Network error: ${e.toString()}');
+      return false;
+    } finally {
+      setLoading(false);
+    }
   }
 }

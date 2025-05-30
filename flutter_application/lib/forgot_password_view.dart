@@ -2,65 +2,62 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../viewmodels/auth_viewmodel.dart';
 
-class RegisterView extends StatefulWidget {
-  const RegisterView({super.key});
+class ForgotPasswordView extends StatefulWidget {
+  const ForgotPasswordView({Key? key}) : super(key: key);
 
   @override
-  State<RegisterView> createState() => _RegisterViewState();
+  _ForgotPasswordViewState createState() => _ForgotPasswordViewState();
 }
 
-class _RegisterViewState extends State<RegisterView> {
+class _ForgotPasswordViewState extends State<ForgotPasswordView> {
   final _formKey = GlobalKey<FormState>();
-  final _nameController = TextEditingController();
   final _emailController = TextEditingController();
-  final _passwordController = TextEditingController();
+  final _newPasswordController = TextEditingController();
   final _confirmPasswordController = TextEditingController();
   bool _obscurePassword = true;
   bool _obscureConfirmPassword = true;
 
   @override
   void dispose() {
-    _nameController.dispose();
     _emailController.dispose();
-    _passwordController.dispose();
+    _newPasswordController.dispose();
     _confirmPasswordController.dispose();
     super.dispose();
   }
 
-  // ✅ MÉTODO CORREGIDO
-  Future<void> _register() async {
+  Future<void> _resetPassword() async {
     if (_formKey.currentState!.validate()) {
       final authViewModel = Provider.of<AuthViewModel>(context, listen: false);
 
-      final success = await authViewModel.register(
-        _nameController.text.trim(),
+      final success = await authViewModel.forgotPassword(
         _emailController.text.trim(),
-        _passwordController.text,
+        _newPasswordController.text,
       );
 
       if (success && mounted) {
-        // ✅ LIMPIAR ERROR MESSAGE PRIMERO
-        authViewModel.clearError();
-        authViewModel.clearErrorMessage();
-
-        // ✅ MOSTRAR MENSAJE VERDE DE ÉXITO
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('¡Account created successfully! Welcome!'),
-            backgroundColor: Colors.green, // ✅ VERDE
-            duration: Duration(seconds: 2),
+        showDialog(
+          context: context,
+          builder: (context) => AlertDialog(
+            title: Row(
+              children: [
+                Icon(Icons.check_circle, color: Colors.green),
+                SizedBox(width: 8),
+                Text('Success!'),
+              ],
+            ),
+            content: Text('Your password has been reset successfully. You can now login with your new password.'),
+            actions: [
+              TextButton(
+                onPressed: () {
+                  Navigator.of(context).pop(); // Cerrar dialog
+                  Navigator.of(context).pop(); // Volver al login
+                },
+                child: Text('Go to Login'),
+              ),
+            ],
           ),
         );
-
-        // ✅ PEQUEÑO DELAY PARA ASEGURAR QUE clearError() FUNCIONE
-        await Future.delayed(const Duration(milliseconds: 200));
-
-        // ✅ NAVEGAR AL DASHBOARD
-        if (mounted) {
-          Navigator.of(context).pushReplacementNamed('/dashboard');
-        }
       }
-      // ❌ Si success es false, el error ya se muestra automáticamente en el Consumer
     }
   }
 
@@ -68,6 +65,12 @@ class _RegisterViewState extends State<RegisterView> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.grey[50],
+      appBar: AppBar(
+        title: Text('Reset Password'),
+        backgroundColor: Colors.green[700],
+        foregroundColor: Colors.white,
+        elevation: 0,
+      ),
       body: SafeArea(
         child: Center(
           child: SingleChildScrollView(
@@ -78,54 +81,33 @@ class _RegisterViewState extends State<RegisterView> {
                 mainAxisAlignment: MainAxisAlignment.center,
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  // Logo y título
-                  const Icon(
-                    Icons.account_balance_wallet,
+                  // Icono
+                  Icon(
+                    Icons.lock_reset,
                     size: 80,
-                    color: Colors.green,
+                    color: Colors.green[600],
                   ),
                   const SizedBox(height: 24),
-                  const Text(
-                    'Create Account',
+                  
+                  // Título
+                  Text(
+                    'Reset Your Password',
                     style: TextStyle(
-                      fontSize: 32,
+                      fontSize: 28,
                       fontWeight: FontWeight.bold,
                       color: Colors.black87,
                     ),
                     textAlign: TextAlign.center,
                   ),
                   const SizedBox(height: 8),
-                  const Text(
-                    'Start managing your expenses today',
-                    style: TextStyle(fontSize: 16, color: Colors.grey),
+                  
+                  // Subtítulo
+                  Text(
+                    'Enter your email and new password',
+                    style: TextStyle(fontSize: 16, color: Colors.grey[600]),
                     textAlign: TextAlign.center,
                   ),
                   const SizedBox(height: 48),
-
-                  // Campo de nombre
-                  TextFormField(
-                    controller: _nameController,
-                    decoration: InputDecoration(
-                      labelText: 'Full Name',
-                      prefixIcon: const Icon(Icons.person),
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      filled: true,
-                      fillColor: Colors.white,
-                    ),
-                    validator: (value) {
-                      if (value == null || value.trim().isEmpty) {
-                        return 'Please enter your full name';
-                      }
-                      if (value.trim().length < 2) {
-                        return 'Name must be at least 2 characters';
-                      }
-                      return null;
-                    },
-                    textInputAction: TextInputAction.next,
-                  ),
-                  const SizedBox(height: 16),
 
                   // Campo de email
                   TextFormField(
@@ -144,9 +126,7 @@ class _RegisterViewState extends State<RegisterView> {
                       if (value == null || value.trim().isEmpty) {
                         return 'Please enter your email';
                       }
-                      if (!RegExp(
-                        r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$',
-                      ).hasMatch(value)) {
+                      if (!RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$').hasMatch(value)) {
                         return 'Please enter a valid email';
                       }
                       return null;
@@ -155,18 +135,16 @@ class _RegisterViewState extends State<RegisterView> {
                   ),
                   const SizedBox(height: 16),
 
-                  // Campo de contraseña
+                  // Campo de nueva contraseña
                   TextFormField(
-                    controller: _passwordController,
+                    controller: _newPasswordController,
                     obscureText: _obscurePassword,
                     decoration: InputDecoration(
-                      labelText: 'Password',
+                      labelText: 'New Password',
                       prefixIcon: const Icon(Icons.lock),
                       suffixIcon: IconButton(
                         icon: Icon(
-                          _obscurePassword
-                              ? Icons.visibility
-                              : Icons.visibility_off,
+                          _obscurePassword ? Icons.visibility : Icons.visibility_off,
                         ),
                         onPressed: () {
                           setState(() {
@@ -182,7 +160,7 @@ class _RegisterViewState extends State<RegisterView> {
                     ),
                     validator: (value) {
                       if (value == null || value.isEmpty) {
-                        return 'Please enter your password';
+                        return 'Please enter your new password';
                       }
                       if (value.length < 6) {
                         return 'Password must be at least 6 characters';
@@ -198,13 +176,11 @@ class _RegisterViewState extends State<RegisterView> {
                     controller: _confirmPasswordController,
                     obscureText: _obscureConfirmPassword,
                     decoration: InputDecoration(
-                      labelText: 'Confirm Password',
+                      labelText: 'Confirm New Password',
                       prefixIcon: const Icon(Icons.lock_outline),
                       suffixIcon: IconButton(
                         icon: Icon(
-                          _obscureConfirmPassword
-                              ? Icons.visibility
-                              : Icons.visibility_off,
+                          _obscureConfirmPassword ? Icons.visibility : Icons.visibility_off,
                         ),
                         onPressed: () {
                           setState(() {
@@ -220,9 +196,9 @@ class _RegisterViewState extends State<RegisterView> {
                     ),
                     validator: (value) {
                       if (value == null || value.isEmpty) {
-                        return 'Please confirm your password';
+                        return 'Please confirm your new password';
                       }
-                      if (value != _passwordController.text) {
+                      if (value != _newPasswordController.text) {
                         return 'Passwords do not match';
                       }
                       return null;
@@ -231,13 +207,13 @@ class _RegisterViewState extends State<RegisterView> {
                   ),
                   const SizedBox(height: 32),
 
-                  // Botón de registro
+                  // Botón de reset
                   Consumer<AuthViewModel>(
                     builder: (context, authViewModel, child) {
                       return ElevatedButton(
-                        onPressed: authViewModel.isLoading ? null : _register,
+                        onPressed: authViewModel.isLoading ? null : _resetPassword,
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.green,
+                          backgroundColor: Colors.green[600],
                           foregroundColor: Colors.white,
                           padding: const EdgeInsets.symmetric(vertical: 16),
                           shape: RoundedRectangleBorder(
@@ -251,13 +227,11 @@ class _RegisterViewState extends State<RegisterView> {
                                 width: 20,
                                 child: CircularProgressIndicator(
                                   strokeWidth: 2,
-                                  valueColor: AlwaysStoppedAnimation<Color>(
-                                    Colors.white,
-                                  ),
+                                  valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
                                 ),
                               )
                             : const Text(
-                                'Create Account',
+                                'Reset Password',
                                 style: TextStyle(
                                   fontSize: 16,
                                   fontWeight: FontWeight.bold,
@@ -267,37 +241,25 @@ class _RegisterViewState extends State<RegisterView> {
                     },
                   ),
 
-                  // ✅ MOSTRAR ERRORES SOLO (SIN ÉXITOS, YA SE MUESTRAN EN SNACKBAR)
+                  // Mostrar errores
                   Consumer<AuthViewModel>(
                     builder: (context, authViewModel, child) {
-                      if (authViewModel.errorMessage != null &&
+                      if (authViewModel.errorMessage != null && 
                           authViewModel.errorMessage!.isNotEmpty) {
-                        // ✅ FILTRAR mensajes de éxito para que NO se muestren como errores
-                        final msg = authViewModel.errorMessage!.toLowerCase();
-                        final isSuccessMessage =
-                            msg.contains('registrado') ||
-                            msg.contains('exitoso') ||
-                            msg.contains('created') ||
-                            msg.contains('successful') ||
-                            msg.contains('welcome');
-
-                        // ✅ SOLO MOSTRAR ERRORES REALES, NO MENSAJES DE ÉXITO
-                        if (!isSuccessMessage) {
-                          return Container(
-                            margin: const EdgeInsets.only(top: 16),
-                            padding: const EdgeInsets.all(12),
-                            decoration: BoxDecoration(
-                              color: Colors.red[50],
-                              borderRadius: BorderRadius.circular(8),
-                              border: Border.all(color: Colors.red[200]!),
-                            ),
-                            child: Text(
-                              authViewModel.errorMessage!,
-                              style: const TextStyle(color: Colors.red),
-                              textAlign: TextAlign.center,
-                            ),
-                          );
-                        }
+                        return Container(
+                          margin: const EdgeInsets.only(top: 16),
+                          padding: const EdgeInsets.all(12),
+                          decoration: BoxDecoration(
+                            color: Colors.red[50],
+                            borderRadius: BorderRadius.circular(8),
+                            border: Border.all(color: Colors.red[200]!),
+                          ),
+                          child: Text(
+                            authViewModel.errorMessage!,
+                            style: const TextStyle(color: Colors.red),
+                            textAlign: TextAlign.center,
+                          ),
+                        );
                       }
                       return const SizedBox.shrink();
                     },
@@ -305,27 +267,16 @@ class _RegisterViewState extends State<RegisterView> {
 
                   const SizedBox(height: 24),
 
-                  // Link para ir al login
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      const Text(
-                        'Already have an account? ',
-                        style: TextStyle(color: Colors.grey),
+                  // Link para volver al login
+                  TextButton(
+                    onPressed: () => Navigator.of(context).pop(),
+                    child: Text(
+                      'Back to Login',
+                      style: TextStyle(
+                        color: Colors.green[600],
+                        fontWeight: FontWeight.w500,
                       ),
-                      GestureDetector(
-                        onTap: () {
-                          Navigator.of(context).pushReplacementNamed('/login');
-                        },
-                        child: const Text(
-                          'Sign In',
-                          style: TextStyle(
-                            color: Colors.green,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ),
-                    ],
+                    ),
                   ),
                 ],
               ),
