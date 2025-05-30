@@ -4,6 +4,7 @@ import '../viewmodels/auth_viewmodel.dart';
 import '../viewmodels/transaction_viewmodel.dart';
 import 'categories_view.dart';
 import 'transactions_view.dart';
+import 'pdf_reports_view.dart';  // ✅ AGREGADO
 import 'package:intl/intl.dart';
 
 class DashboardView extends StatefulWidget {
@@ -160,25 +161,25 @@ class _DashboardViewState extends State<DashboardView> {
                         ],
                       ),
                       child: Padding(
-                        padding: const EdgeInsets.all(16.0), // ✅ Reducido de 20 a 16
+                        padding: const EdgeInsets.all(16.0),
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            // ✅ Header más compacto
+                            // Header más compacto
                             Row(
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
                                 Text(
                                   'Financial Summary',
-                                  style: Theme.of(context).textTheme.titleMedium?.copyWith( // ✅ Cambiado de titleLarge a titleMedium
+                                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
                                     fontWeight: FontWeight.bold,
                                     color: Colors.grey[800],
                                   ),
                                 ),
                                 if (transactionViewModel.isLoading)
                                   SizedBox(
-                                    width: 16, // ✅ Reducido de 20 a 16
-                                    height: 16, // ✅ Reducido de 20 a 16
+                                    width: 16,
+                                    height: 16,
                                     child: CircularProgressIndicator(
                                       strokeWidth: 2,
                                       color: Colors.green[600],
@@ -186,13 +187,13 @@ class _DashboardViewState extends State<DashboardView> {
                                   ),
                               ],
                             ),
-                            const SizedBox(height: 12), // ✅ Reducido de 20 a 12
+                            const SizedBox(height: 12),
                             
-                            // ✅ Error más compacto
+                            // Error más compacto
                             if (transactionViewModel.errorMessage != null) ...[
                               Container(
                                 width: double.infinity,
-                                padding: const EdgeInsets.all(8), // ✅ Reducido de 12 a 8
+                                padding: const EdgeInsets.all(8),
                                 decoration: BoxDecoration(
                                   color: Colors.red[50],
                                   borderRadius: BorderRadius.circular(8),
@@ -200,17 +201,17 @@ class _DashboardViewState extends State<DashboardView> {
                                 ),
                                 child: Row(
                                   children: [
-                                    Icon(Icons.error_outline, color: Colors.red[600], size: 16), // ✅ Reducido de 20 a 16
-                                    const SizedBox(width: 6), // ✅ Reducido de 8 a 6
+                                    Icon(Icons.error_outline, color: Colors.red[600], size: 16),
+                                    const SizedBox(width: 6),
                                     Expanded(
                                       child: Text(
                                         'Error loading data: ${transactionViewModel.errorMessage}',
-                                        style: TextStyle(color: Colors.red[600], fontSize: 11), // ✅ Reducido de 12 a 11
+                                        style: TextStyle(color: Colors.red[600], fontSize: 11),
                                       ),
                                     ),
                                     TextButton(
                                       style: TextButton.styleFrom(
-                                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4), // ✅ Padding más pequeño
+                                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                                         minimumSize: Size.zero,
                                         tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                                       ),
@@ -220,10 +221,10 @@ class _DashboardViewState extends State<DashboardView> {
                                   ],
                                 ),
                               ),
-                              const SizedBox(height: 8), // ✅ Reducido de 16 a 8
+                              const SizedBox(height: 8),
                             ],
                             
-                            // ✅ Summary Cards más compactos
+                            // Summary Cards más compactos
                             Row(
                               mainAxisAlignment: MainAxisAlignment.spaceAround,
                               children: [
@@ -251,9 +252,9 @@ class _DashboardViewState extends State<DashboardView> {
                               ],
                             ),
                             
-                            const SizedBox(height: 8), // ✅ Reducido de 16 a 8
+                            const SizedBox(height: 8),
                             
-                            // ✅ Info chips más compactos
+                            // Info chips más compactos
                             Row(
                               mainAxisAlignment: MainAxisAlignment.spaceAround,
                               children: [
@@ -329,12 +330,13 @@ class _DashboardViewState extends State<DashboardView> {
                       _buildActionCard(
                         context,
                         'Reports',
-                        'View detailed reports',
-                        Icons.bar_chart,
-                        Colors.teal[600]!,
+                        'Generate PDF reports',    // ✅ CAMBIADO
+                        Icons.picture_as_pdf,      // ✅ CAMBIADO
+                        Colors.red[600]!,          // ✅ CAMBIADO
                         () {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(content: Text('Reports feature coming soon!')),
+                          Navigator.push(         // ✅ CAMBIADO
+                            context,
+                            MaterialPageRoute(builder: (context) => const PDFReportsView()),
                           );
                         },
                       ),
@@ -369,7 +371,7 @@ class _DashboardViewState extends State<DashboardView> {
     IconData icon,
   ) {
     return Container(
-      padding: const EdgeInsets.all(8), // ✅ Reducido de 12 a 8
+      padding: const EdgeInsets.all(8),
       decoration: BoxDecoration(
         color: color.withOpacity(0.1),
         borderRadius: BorderRadius.circular(12),
@@ -381,24 +383,24 @@ class _DashboardViewState extends State<DashboardView> {
           Icon(
             icon,
             color: color,
-            size: 20, // ✅ Reducido de 28 a 20
+            size: 20,
           ),
-          const SizedBox(height: 4), // ✅ Reducido de 8 a 4
+          const SizedBox(height: 4),
           Text(
             title,
             style: Theme.of(context).textTheme.bodySmall?.copyWith(
               color: Colors.grey[600],
               fontWeight: FontWeight.w500,
-              fontSize: 10, // ✅ Reducido
+              fontSize: 10,
             ),
           ),
-          const SizedBox(height: 2), // ✅ Reducido de 4 a 2
+          const SizedBox(height: 2),
           Text(
             amount,
             style: Theme.of(context).textTheme.titleMedium?.copyWith(
               fontWeight: FontWeight.bold,
               color: color,
-              fontSize: 11, // ✅ Reducido de 13 a 11
+              fontSize: 11,
             ),
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
@@ -410,7 +412,7 @@ class _DashboardViewState extends State<DashboardView> {
 
   Widget _buildInfoChip(String label, String value, Color color) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4), // ✅ Reducido
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       decoration: BoxDecoration(
         color: color.withOpacity(0.1),
         borderRadius: BorderRadius.circular(20),
@@ -424,22 +426,22 @@ class _DashboardViewState extends State<DashboardView> {
             style: TextStyle(
               color: color,
               fontWeight: FontWeight.w500,
-              fontSize: 10, // ✅ Reducido de 12 a 10
+              fontSize: 10,
             ),
           ),
-          const SizedBox(width: 3), // ✅ Reducido de 4 a 3
+          const SizedBox(width: 3),
           Container(
-            padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1), // ✅ Reducido
+            padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
             decoration: BoxDecoration(
               color: color,
-              borderRadius: BorderRadius.circular(8), // ✅ Reducido de 10 a 8
+              borderRadius: BorderRadius.circular(8),
             ),
             child: Text(
               value,
               style: const TextStyle(
                 color: Colors.white,
                 fontWeight: FontWeight.bold,
-                fontSize: 9, // ✅ Reducido de 10 a 9
+                fontSize: 9,
               ),
             ),
           ),
