@@ -32,7 +32,6 @@ class _TransactionFormViewState extends State<TransactionFormView> {
   void initState() {
     super.initState();
 
-    // Cargar categorías al iniciar
     WidgetsBinding.instance.addPostFrameCallback((_) {
       context.read<CategoryViewModel>().loadCategories();
     });
@@ -43,7 +42,6 @@ class _TransactionFormViewState extends State<TransactionFormView> {
           ? TransactionModel.TransactionType.ingreso
           : TransactionModel.TransactionType.gasto;
       _selectedDate = widget.transaction!.fecha;
-      // _selectedCategory se establecerá cuando se carguen las categorías
     }
   }
 
@@ -60,13 +58,12 @@ class _TransactionFormViewState extends State<TransactionFormView> {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(isEditing ? 'Editar Transacción' : 'Nueva Transacción'),
-        backgroundColor: Colors.green,
+        title: Text(isEditing ? 'Edit Transaction' : 'New Transaction'),
+        backgroundColor: Colors.green[700],
         foregroundColor: Colors.white,
       ),
       body: Consumer2<TransactionViewModel, CategoryViewModel>(
         builder: (context, transactionViewModel, categoryViewModel, child) {
-          // Establecer categoría seleccionada cuando se carguen las categorías
           if (widget.transaction != null &&
               _selectedCategory == null &&
               categoryViewModel.categories.isNotEmpty) {
@@ -76,235 +73,254 @@ class _TransactionFormViewState extends State<TransactionFormView> {
             );
           }
 
-          return SingleChildScrollView(
-            padding: const EdgeInsets.all(16.0),
-            child: Form(
-              key: _formKey,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // Tipo de transacción
-                  const Text(
-                    'Tipo de Transacción',
-                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                  ),
-                  const SizedBox(height: 8),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: RadioListTile<TransactionModel.TransactionType>(
-                          title: const Text('Ingreso'),
-                          value: TransactionModel.TransactionType.ingreso,
-                          groupValue: _selectedType,
-                          onChanged: (value) {
-                            setState(() {
-                              _selectedType = value!;
-                              _selectedCategory =
-                                  null; // Reset category selection
-                            });
-                          },
-                          tileColor: Colors.green[50],
+          return Container(
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+                colors: [
+                  Colors.green[700]!,
+                  Colors.green[50]!,
+                ],
+              ),
+            ),
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.all(16.0),
+              child: Form(
+                key: _formKey,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      'Transaction Type',
+                      style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white),
+                    ),
+                    const SizedBox(height: 8),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: RadioListTile<TransactionModel.TransactionType>(
+                            title: const Text('Income'),
+                            value: TransactionModel.TransactionType.ingreso,
+                            groupValue: _selectedType,
+                            onChanged: (value) {
+                              setState(() {
+                                _selectedType = value!;
+                                _selectedCategory = null;
+                              });
+                            },
+                            tileColor: Colors.green[50],
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: RadioListTile<TransactionModel.TransactionType>(
+                            title: const Text('Expense'),
+                            value: TransactionModel.TransactionType.gasto,
+                            groupValue: _selectedType,
+                            onChanged: (value) {
+                              setState(() {
+                                _selectedType = value!;
+                                _selectedCategory = null;
+                              });
+                            },
+                            tileColor: Colors.red[50],
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+
+                    const SizedBox(height: 24),
+
+                    TextFormField(
+                      controller: _amountController,
+                      keyboardType: TextInputType.number,
+                      decoration: InputDecoration(
+                        labelText: 'Amount',
+                        border: const OutlineInputBorder(),
+                        prefixIcon: const Icon(Icons.attach_money),
+                        prefixText: '\$ ',
+                        focusedBorder: OutlineInputBorder(
+                          borderSide: BorderSide(color: Colors.green[600]!, width: 2),
+                        ),
+                        filled: true,
+                        fillColor: Colors.white,
+                      ),
+                      validator: (value) {
+                        if (value == null || value.trim().isEmpty) {
+                          return 'Amount is required';
+                        }
+                        final amount = double.tryParse(value.trim());
+                        if (amount == null || amount <= 0) {
+                          return 'Enter a valid amount greater than 0';
+                        }
+                        return null;
+                      },
+                    ),
+
+                    const SizedBox(height: 16),
+
+                    TextFormField(
+                      controller: _descriptionController,
+                      decoration: InputDecoration(
+                        labelText: 'Description',
+                        border: const OutlineInputBorder(),
+                        prefixIcon: const Icon(Icons.description),
+                        focusedBorder: OutlineInputBorder(
+                          borderSide: BorderSide(color: Colors.green[600]!, width: 2),
+                        ),
+                        filled: true,
+                        fillColor: Colors.white,
+                      ),
+                      validator: (value) {
+                        if (value == null || value.trim().isEmpty) {
+                          return 'Description is required';
+                        }
+                        if (value.trim().length < 3) {
+                          return 'Description must be at least 3 characters';
+                        }
+                        return null;
+                      },
+                    ),
+
+                    const SizedBox(height: 16),
+
+                    const Text(
+                      'Category',
+                      style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white),
+                    ),
+                    const SizedBox(height: 8),
+                    if (categoryViewModel.isLoading)
+                      Center(child: CircularProgressIndicator(color: Colors.green[600]))
+                    else if (categoryViewModel.errorMessage != null)
+                      Container(
+                        width: double.infinity,
+                        padding: const EdgeInsets.all(12),
+                        decoration: BoxDecoration(
+                          color: Colors.red[50],
+                          borderRadius: BorderRadius.circular(8),
+                          border: Border.all(color: Colors.red[200]!),
+                        ),
+                        child: Text(
+                          'Error loading categories: ${categoryViewModel.errorMessage}',
+                          style: const TextStyle(color: Colors.red),
+                        ),
+                      )
+                    else
+                      _buildCategorySelector(categoryViewModel),
+
+                    const SizedBox(height: 16),
+
+                    const Text(
+                      'Date',
+                      style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white),
+                    ),
+                    const SizedBox(height: 8),
+                    InkWell(
+                      onTap: _selectDate,
+                      child: Container(
+                        width: double.infinity,
+                        padding: const EdgeInsets.all(16),
+                        decoration: BoxDecoration(
+                          border: Border.all(color: Colors.grey[400]!),
+                          borderRadius: BorderRadius.circular(8),
+                          color: Colors.white,
+                        ),
+                        child: Row(
+                          children: [
+                            const Icon(Icons.calendar_today),
+                            const SizedBox(width: 12),
+                            Text(
+                              DateFormat('dd/MM/yyyy').format(_selectedDate),
+                              style: const TextStyle(fontSize: 16),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+
+                    const SizedBox(height: 16),
+
+                    const Text(
+                      'Payment Method',
+                      style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white),
+                    ),
+                    const SizedBox(height: 8),
+                    DropdownButtonFormField<String>(
+                      value: _selectedPaymentMethod,
+                      decoration: InputDecoration(
+                        border: const OutlineInputBorder(),
+                        prefixIcon: const Icon(Icons.payment),
+                        focusedBorder: OutlineInputBorder(
+                          borderSide: BorderSide(color: Colors.green[600]!, width: 2),
+                        ),
+                        filled: true,
+                        fillColor: Colors.white,
+                      ),
+                      items: _paymentMethods.map((method) {
+                        return DropdownMenuItem(
+                          value: method,
+                          child: Text(_getPaymentMethodName(method)),
+                        );
+                      }).toList(),
+                      onChanged: (value) {
+                        setState(() {
+                          _selectedPaymentMethod = value!;
+                        });
+                      },
+                    ),
+
+                    const SizedBox(height: 32),
+
+                    SizedBox(
+                      width: double.infinity,
+                      child: ElevatedButton(
+                        onPressed: transactionViewModel.isLoading
+                            ? null
+                            : _saveTransaction,
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.green[600],
+                          padding: const EdgeInsets.symmetric(vertical: 16),
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(8),
                           ),
                         ),
+                        child: transactionViewModel.isLoading
+                            ? const CircularProgressIndicator(color: Colors.white)
+                            : Text(
+                                isEditing ? 'Update' : 'Create',
+                                style: const TextStyle(
+                                  fontSize: 16,
+                                  color: Colors.white,
+                                ),
+                              ),
                       ),
-                      const SizedBox(width: 8),
-                      Expanded(
-                        child: RadioListTile<TransactionModel.TransactionType>(
-                          title: const Text('Gasto'),
-                          value: TransactionModel.TransactionType.gasto,
-                          groupValue: _selectedType,
-                          onChanged: (value) {
-                            setState(() {
-                              _selectedType = value!;
-                              _selectedCategory =
-                                  null; // Reset category selection
-                            });
-                          },
-                          tileColor: Colors.red[50],
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(8),
-                          ),
+                    ),
+
+                    if (transactionViewModel.errorMessage != null) ...[
+                      const SizedBox(height: 16),
+                      Container(
+                        width: double.infinity,
+                        padding: const EdgeInsets.all(12),
+                        decoration: BoxDecoration(
+                          color: Colors.red[50],
+                          borderRadius: BorderRadius.circular(8),
+                          border: Border.all(color: Colors.red[200]!),
+                        ),
+                        child: Text(
+                          transactionViewModel.errorMessage!,
+                          style: const TextStyle(color: Colors.red),
                         ),
                       ),
                     ],
-                  ),
-
-                  const SizedBox(height: 24),
-
-                  // Monto
-                  TextFormField(
-                    controller: _amountController,
-                    keyboardType: TextInputType.number,
-                    decoration: const InputDecoration(
-                      labelText: 'Monto',
-                      border: OutlineInputBorder(),
-                      prefixIcon: Icon(Icons.attach_money),
-                      prefixText: '\$ ',
-                    ),
-                    validator: (value) {
-                      if (value == null || value.trim().isEmpty) {
-                        return 'El monto es requerido';
-                      }
-                      final amount = double.tryParse(value.trim());
-                      if (amount == null || amount <= 0) {
-                        return 'Ingresa un monto válido mayor a 0';
-                      }
-                      return null;
-                    },
-                  ),
-
-                  const SizedBox(height: 16),
-
-                  // Descripción
-                  TextFormField(
-                    controller: _descriptionController,
-                    decoration: const InputDecoration(
-                      labelText: 'Descripción',
-                      border: OutlineInputBorder(),
-                      prefixIcon: Icon(Icons.description),
-                    ),
-                    validator: (value) {
-                      if (value == null || value.trim().isEmpty) {
-                        return 'La descripción es requerida';
-                      }
-                      if (value.trim().length < 3) {
-                        return 'La descripción debe tener al menos 3 caracteres';
-                      }
-                      return null;
-                    },
-                  ),
-
-                  const SizedBox(height: 16),
-
-                  // Categoría
-                  const Text(
-                    'Categoría',
-                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                  ),
-                  const SizedBox(height: 8),
-                  if (categoryViewModel.isLoading)
-                    const Center(child: CircularProgressIndicator())
-                  else if (categoryViewModel.errorMessage != null)
-                    Container(
-                      width: double.infinity,
-                      padding: const EdgeInsets.all(12),
-                      decoration: BoxDecoration(
-                        color: Colors.red[50],
-                        borderRadius: BorderRadius.circular(8),
-                        border: Border.all(color: Colors.red[200]!),
-                      ),
-                      child: Text(
-                        'Error cargando categorías: ${categoryViewModel.errorMessage}',
-                        style: const TextStyle(color: Colors.red),
-                      ),
-                    )
-                  else
-                    _buildCategorySelector(categoryViewModel),
-
-                  const SizedBox(height: 16),
-
-                  // Fecha
-                  const Text(
-                    'Fecha',
-                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                  ),
-                  const SizedBox(height: 8),
-                  InkWell(
-                    onTap: _selectDate,
-                    child: Container(
-                      width: double.infinity,
-                      padding: const EdgeInsets.all(16),
-                      decoration: BoxDecoration(
-                        border: Border.all(color: Colors.grey[400]!),
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: Row(
-                        children: [
-                          const Icon(Icons.calendar_today),
-                          const SizedBox(width: 12),
-                          Text(
-                            DateFormat('dd/MM/yyyy').format(_selectedDate),
-                            style: const TextStyle(fontSize: 16),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-
-                  const SizedBox(height: 16),
-
-                  // Método de pago
-                  const Text(
-                    'Método de Pago',
-                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                  ),
-                  const SizedBox(height: 8),
-                  DropdownButtonFormField<String>(
-                    value: _selectedPaymentMethod,
-                    decoration: const InputDecoration(
-                      border: OutlineInputBorder(),
-                      prefixIcon: Icon(Icons.payment),
-                    ),
-                    items: _paymentMethods.map((method) {
-                      return DropdownMenuItem(
-                        value: method,
-                        child: Text(_getPaymentMethodName(method)),
-                      );
-                    }).toList(),
-                    onChanged: (value) {
-                      setState(() {
-                        _selectedPaymentMethod = value!;
-                      });
-                    },
-                  ),
-
-                  const SizedBox(height: 32),
-
-                  // Botón guardar
-                  SizedBox(
-                    width: double.infinity,
-                    child: ElevatedButton(
-                      onPressed: transactionViewModel.isLoading
-                          ? null
-                          : _saveTransaction,
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.green,
-                        padding: const EdgeInsets.symmetric(vertical: 16),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                      ),
-                      child: transactionViewModel.isLoading
-                          ? const CircularProgressIndicator(color: Colors.white)
-                          : Text(
-                              isEditing ? 'Actualizar' : 'Crear',
-                              style: const TextStyle(
-                                fontSize: 16,
-                                color: Colors.white,
-                              ),
-                            ),
-                    ),
-                  ),
-
-                  if (transactionViewModel.errorMessage != null) ...[
-                    const SizedBox(height: 16),
-                    Container(
-                      width: double.infinity,
-                      padding: const EdgeInsets.all(12),
-                      decoration: BoxDecoration(
-                        color: Colors.red[50],
-                        borderRadius: BorderRadius.circular(8),
-                        border: Border.all(color: Colors.red[200]!),
-                      ),
-                      child: Text(
-                        transactionViewModel.errorMessage!,
-                        style: const TextStyle(color: Colors.red),
-                      ),
-                    ),
                   ],
-                ],
+                ),
               ),
             ),
           );
@@ -329,7 +345,7 @@ class _TransactionFormViewState extends State<TransactionFormView> {
           border: Border.all(color: Colors.orange[200]!),
         ),
         child: Text(
-          'No hay categorías de ${_selectedType == TransactionModel.TransactionType.ingreso ? 'ingreso' : 'gasto'} disponibles. Crea una categoría primero.',
+          'No ${_selectedType == TransactionModel.TransactionType.ingreso ? 'income' : 'expense'} categories available. Create a category first.',
           style: const TextStyle(color: Colors.orange),
         ),
       );
@@ -337,10 +353,15 @@ class _TransactionFormViewState extends State<TransactionFormView> {
 
     return DropdownButtonFormField<CategoryModel.Category>(
       value: _selectedCategory,
-      decoration: const InputDecoration(
-        border: OutlineInputBorder(),
-        prefixIcon: Icon(Icons.category),
-        hintText: 'Selecciona una categoría',
+      decoration: InputDecoration(
+        border: const OutlineInputBorder(),
+        prefixIcon: const Icon(Icons.category),
+        hintText: 'Select a category',
+        focusedBorder: OutlineInputBorder(
+          borderSide: BorderSide(color: Colors.green[600]!, width: 2),
+        ),
+        filled: true,
+        fillColor: Colors.white,
       ),
       items: availableCategories.map((category) {
         return DropdownMenuItem(
@@ -373,7 +394,7 @@ class _TransactionFormViewState extends State<TransactionFormView> {
       },
       validator: (value) {
         if (value == null) {
-          return 'Selecciona una categoría';
+          return 'Select a category';
         }
         return null;
       },
@@ -405,7 +426,6 @@ class _TransactionFormViewState extends State<TransactionFormView> {
     final description = _descriptionController.text.trim();
     bool success;
     if (widget.transaction != null) {
-      // Editar transacción existente
       success = await transactionViewModel.updateTransaction(
         id: widget.transaction!.id!,
         amount: amount,
@@ -414,7 +434,6 @@ class _TransactionFormViewState extends State<TransactionFormView> {
         type: _selectedType.apiValue,
       );
     } else {
-      // Crear nueva transacción
       success = await transactionViewModel.createTransaction(
         amount: amount,
         description: description,
@@ -431,8 +450,8 @@ class _TransactionFormViewState extends State<TransactionFormView> {
         SnackBar(
           content: Text(
             widget.transaction != null
-                ? 'Transacción actualizada exitosamente'
-                : 'Transacción creada exitosamente',
+                ? 'Transaction updated successfully'
+                : 'Transaction created successfully',
           ),
           backgroundColor: Colors.green,
         ),
@@ -443,11 +462,11 @@ class _TransactionFormViewState extends State<TransactionFormView> {
   String _getPaymentMethodName(String method) {
     switch (method) {
       case 'efectivo':
-        return 'Efectivo';
+        return 'Cash';
       case 'tarjeta':
-        return 'Tarjeta';
+        return 'Card';
       case 'transferencia':
-        return 'Transferencia';
+        return 'Transfer';
       default:
         return method;
     }
@@ -457,7 +476,7 @@ class _TransactionFormViewState extends State<TransactionFormView> {
     try {
       return Color(int.parse(colorString.replaceFirst('#', '0xFF')));
     } catch (e) {
-      return Colors.blue;
+      return Colors.green;
     }
   }
 

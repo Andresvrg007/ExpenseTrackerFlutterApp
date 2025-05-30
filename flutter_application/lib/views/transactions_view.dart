@@ -45,8 +45,8 @@ class _TransactionsViewState extends State<TransactionsView>
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Transacciones'),
-        backgroundColor: Colors.green,
+        title: const Text('Transactions'), // ✅ Cambio: 'Transacciones' → 'Transactions'
+        backgroundColor: Colors.green[700], // ✅ Cambio: Colors.green → Colors.green[700]
         foregroundColor: Colors.white,
         bottom: TabBar(
           controller: _tabController,
@@ -54,9 +54,9 @@ class _TransactionsViewState extends State<TransactionsView>
           labelColor: Colors.white,
           unselectedLabelColor: Colors.white70,
           tabs: const [
-            Tab(text: 'Todas'),
-            Tab(text: 'Ingresos'),
-            Tab(text: 'Gastos'),
+            Tab(text: 'All'), // ✅ Cambio: 'Todas' → 'All'
+            Tab(text: 'Income'), // ✅ Cambio: 'Ingresos' → 'Income'
+            Tab(text: 'Expenses'), // ✅ Cambio: 'Gastos' → 'Expenses'
           ],
         ),
       ),
@@ -80,7 +80,7 @@ class _TransactionsViewState extends State<TransactionsView>
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () => _navigateToForm(context),
-        backgroundColor: Colors.green,
+        backgroundColor: Colors.green[600], // ✅ Cambio: Colors.green → Colors.green[600]
         child: const Icon(Icons.add, color: Colors.white),
       ),
     );
@@ -90,7 +90,16 @@ class _TransactionsViewState extends State<TransactionsView>
     return Consumer<TransactionViewModel>(
       builder: (context, viewModel, child) {
         return Container(
-          color: Colors.grey[50],
+          decoration: BoxDecoration( // ✅ Agregar gradiente verde
+            gradient: LinearGradient(
+              begin: Alignment.topCenter,
+              end: Alignment.bottomCenter,
+              colors: [
+                Colors.green[700]!,
+                Colors.green[50]!,
+              ],
+            ),
+          ),
           child: Column(
             children: [
               // Resumen de balance
@@ -100,7 +109,7 @@ class _TransactionsViewState extends State<TransactionsView>
                   children: [
                     Expanded(
                       child: _buildSummaryCard(
-                        'Ingresos',
+                        'Income', // ✅ Cambio: 'Ingresos' → 'Income'
                         viewModel.totalIncome,
                         Colors.green,
                         Icons.arrow_upward,
@@ -109,7 +118,7 @@ class _TransactionsViewState extends State<TransactionsView>
                     const SizedBox(width: 8),
                     Expanded(
                       child: _buildSummaryCard(
-                        'Gastos',
+                        'Expenses', // ✅ Cambio: 'Gastos' → 'Expenses'
                         viewModel.totalExpenses,
                         Colors.red,
                         Icons.arrow_downward,
@@ -133,10 +142,14 @@ class _TransactionsViewState extends State<TransactionsView>
                 padding: const EdgeInsets.symmetric(horizontal: 16.0),
                 child: TextField(
                   decoration: InputDecoration(
-                    hintText: 'Buscar transacciones...',
-                    prefixIcon: const Icon(Icons.search),
+                    hintText: 'Search transactions...', // ✅ Cambio: 'Buscar transacciones...' → 'Search transactions...'
+                    prefixIcon: Icon(Icons.search, color: Colors.green[600]), // ✅ Agregar color verde
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(10),
+                    ),
+                    focusedBorder: OutlineInputBorder( // ✅ Agregar borde verde cuando enfocado
+                      borderRadius: BorderRadius.circular(10),
+                      borderSide: BorderSide(color: Colors.green[600]!, width: 2),
                     ),
                     filled: true,
                     fillColor: Colors.white,
@@ -163,6 +176,10 @@ class _TransactionsViewState extends State<TransactionsView>
     IconData icon,
   ) {
     return Card(
+      elevation: 4, // ✅ Aumentar elevación
+      shape: RoundedRectangleBorder( // ✅ Agregar bordes redondeados
+        borderRadius: BorderRadius.circular(12),
+      ),
       child: Padding(
         padding: const EdgeInsets.all(12.0),
         child: Column(
@@ -192,7 +209,11 @@ class _TransactionsViewState extends State<TransactionsView>
     return Consumer<TransactionViewModel>(
       builder: (context, viewModel, child) {
         if (viewModel.isLoading) {
-          return const Center(child: CircularProgressIndicator());
+          return Center(
+            child: CircularProgressIndicator(
+              color: Colors.green[600], // ✅ Cambio: color por defecto → verde
+            ),
+          );
         }
 
         if (viewModel.errorMessage != null) {
@@ -210,7 +231,11 @@ class _TransactionsViewState extends State<TransactionsView>
                 const SizedBox(height: 16),
                 ElevatedButton(
                   onPressed: () => viewModel.loadTransactions(),
-                  child: const Text('Reintentar'),
+                  style: ElevatedButton.styleFrom( // ✅ Agregar estilo verde
+                    backgroundColor: Colors.green[600],
+                    foregroundColor: Colors.white,
+                  ),
+                  child: const Text('Try Again'), // ✅ Cambio: 'Reintentar' → 'Try Again'
                 ),
               ],
             ),
@@ -245,14 +270,14 @@ class _TransactionsViewState extends State<TransactionsView>
                 const SizedBox(height: 16),
                 Text(
                   _searchQuery.isNotEmpty
-                      ? 'No se encontraron transacciones'
-                      : 'No hay transacciones aún',
+                      ? 'No transactions found' // ✅ Cambio: 'No se encontraron transacciones' → 'No transactions found'
+                      : 'No transactions yet', // ✅ Cambio: 'No hay transacciones aún' → 'No transactions yet'
                   style: const TextStyle(fontSize: 16),
                 ),
                 if (_searchQuery.isEmpty) ...[
                   const SizedBox(height: 8),
                   const Text(
-                    'Toca el botón + para crear una',
+                    'Tap the + button to create one', // ✅ Cambio: 'Toca el botón + para crear una' → 'Tap the + button to create one'
                     style: TextStyle(fontSize: 14, color: Colors.grey),
                   ),
                 ],
@@ -263,6 +288,7 @@ class _TransactionsViewState extends State<TransactionsView>
 
         return RefreshIndicator(
           onRefresh: () => viewModel.loadTransactions(),
+          color: Colors.green[600], // ✅ Agregar color verde al indicador
           child: ListView.builder(
             padding: const EdgeInsets.all(16),
             itemCount: transactions.length,
@@ -271,7 +297,7 @@ class _TransactionsViewState extends State<TransactionsView>
               return _buildTransactionCard(context, transaction, viewModel);
             },
           ),
-        );
+        ); // ✅ FALTABA ESTE PARÉNTESIS Y PUNTO Y COMA
       },
     );
   }
@@ -295,71 +321,135 @@ class _TransactionsViewState extends State<TransactionsView>
     TransactionModel.Transaction transaction,
     TransactionViewModel viewModel,
   ) {
-    final isIncome =
-        transaction.tipo == TransactionModel.TransactionType.ingreso.value;
+    final isIncome = transaction.tipo == TransactionModel.TransactionType.ingreso.value;
     final color = isIncome ? Colors.green : Colors.red;
     final icon = isIncome ? Icons.arrow_upward : Icons.arrow_downward;
 
     return Card(
       margin: const EdgeInsets.only(bottom: 8),
-      child: ListTile(
-        leading: Container(
-          width: 48,
-          height: 48,
-          decoration: BoxDecoration(
-            color: color.withOpacity(0.1),
-            borderRadius: BorderRadius.circular(8),
-          ),
-          child: Icon(icon, color: color, size: 24),
-        ),
-        title: Text(
-          transaction.description,
-          style: const TextStyle(fontWeight: FontWeight.bold),
-        ),
-        subtitle: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+      elevation: 2,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(12.0), // ✅ Reducido de 16 a 12
+        child: Row(
           children: [
-            Text(
-              transaction.category,
-              style: TextStyle(color: Colors.grey[600]),
+            // ✅ Icono más compacto
+            Container(
+              width: 40, // ✅ Reducido de 48 a 40
+              height: 40, // ✅ Reducido de 48 a 40
+              decoration: BoxDecoration(
+                color: color.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Icon(icon, color: color, size: 20), // ✅ Reducido de 24 a 20
             ),
-            Text(
-              _dateFormat.format(transaction.fecha),
-              style: TextStyle(color: Colors.grey[500], fontSize: 12),
-            ),
-          ],
-        ),
-        trailing: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          crossAxisAlignment: CrossAxisAlignment.end,
-          children: [
-            Text(
-              '${isIncome ? '+' : '-'}${_currencyFormat.format(transaction.amount)}',
-              style: TextStyle(
-                fontWeight: FontWeight.bold,
-                color: color,
-                fontSize: 16,
+            
+            const SizedBox(width: 12),
+            
+            // ✅ Información de la transacción - más compacta
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min, // ✅ IMPORTANTE: Tamaño mínimo
+                children: [
+                  Text(
+                    transaction.description,
+                    style: const TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 14, // ✅ Reducido de 16 a 14
+                    ),
+                    maxLines: 1, // ✅ IMPORTANTE: Solo 1 línea
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  
+                  const SizedBox(height: 2), // ✅ Reducido de 4 a 2
+                  
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Text(
+                          transaction.category,
+                          style: TextStyle(
+                            color: Colors.grey[600],
+                            fontSize: 12, // ✅ Reducido de 14 a 12
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                      
+                      const SizedBox(width: 8),
+                      
+                      Text(
+                        _dateFormat.format(transaction.fecha),
+                        style: TextStyle(
+                          color: Colors.grey[500],
+                          fontSize: 11, // ✅ Reducido de 12 a 11
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
               ),
             ),
-            PopupMenuButton<String>(
-              onSelected: (value) =>
-                  _handleMenuAction(context, value, transaction, viewModel),
-              itemBuilder: (context) => [
-                const PopupMenuItem(
-                  value: 'edit',
-                  child: ListTile(
-                    leading: Icon(Icons.edit),
-                    title: Text('Editar'),
+            
+            const SizedBox(width: 8),
+            
+            // ✅ Monto y menú - más compacto
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.end,
+              mainAxisSize: MainAxisSize.min, // ✅ IMPORTANTE: Tamaño mínimo
+              children: [
+                Text(
+                  '${isIncome ? '+' : '-'}${_currencyFormat.format(transaction.amount)}',
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    color: color,
+                    fontSize: 14, // ✅ Reducido de 16 a 14
                   ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                 ),
-                const PopupMenuItem(
-                  value: 'delete',
-                  child: ListTile(
-                    leading: Icon(Icons.delete, color: Colors.red),
-                    title: Text(
-                      'Eliminar',
-                      style: TextStyle(color: Colors.red),
-                    ),
+                
+                // ✅ Menú más pequeño
+                SizedBox(
+                  height: 24, // ✅ Altura fija pequeña
+                  width: 24,  // ✅ Ancho fijo pequeño
+                  child: PopupMenuButton<String>(
+                    padding: EdgeInsets.zero, // ✅ Sin padding
+                    iconSize: 16, // ✅ Icono más pequeño
+                    onSelected: (value) => _handleMenuAction(context, value, transaction, viewModel),
+                    itemBuilder: (context) => [
+                      PopupMenuItem(
+                        value: 'edit',
+                        height: 36, // ✅ Altura reducida
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(Icons.edit, color: Colors.green[600], size: 16),
+                            const SizedBox(width: 8),
+                            const Text('Edit', style: TextStyle(fontSize: 12)),
+                          ],
+                        ),
+                      ),
+                      PopupMenuItem(
+                        value: 'delete',
+                        height: 36, // ✅ Altura reducida
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            const Icon(Icons.delete, color: Colors.red, size: 16),
+                            const SizedBox(width: 8),
+                            const Text(
+                              'Delete',
+                              style: TextStyle(color: Colors.red, fontSize: 12),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
                   ),
                 ),
               ],
@@ -394,14 +484,14 @@ class _TransactionsViewState extends State<TransactionsView>
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Eliminar transacción'),
+        title: const Text('Delete Transaction'), // ✅ Cambio: 'Eliminar transacción' → 'Delete Transaction'
         content: Text(
-          '¿Estás seguro de que quieres eliminar "${transaction.description}"?',
+          'Are you sure you want to delete "${transaction.description}"?', // ✅ Cambio: '¿Estás seguro...' → 'Are you sure...'
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(),
-            child: const Text('Cancelar'),
+            child: const Text('Cancel'), // ✅ Cambio: 'Cancelar' → 'Cancel'
           ),
           ElevatedButton(
             onPressed: () async {
@@ -412,7 +502,7 @@ class _TransactionsViewState extends State<TransactionsView>
               if (success) {
                 ScaffoldMessenger.of(context).showSnackBar(
                   const SnackBar(
-                    content: Text('Transacción eliminada exitosamente'),
+                    content: Text('Transaction deleted successfully'), // ✅ Cambio: 'Transacción eliminada exitosamente' → 'Transaction deleted successfully'
                     backgroundColor: Colors.green,
                   ),
                 );
@@ -420,7 +510,7 @@ class _TransactionsViewState extends State<TransactionsView>
             },
             style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
             child: const Text(
-              'Eliminar',
+              'Delete', // ✅ Cambio: 'Eliminar' → 'Delete'
               style: TextStyle(color: Colors.white),
             ),
           ),

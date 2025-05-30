@@ -167,22 +167,19 @@ class ApiService {
   Future<List<Map<String, dynamic>>> getCategories({String? tipo}) async {
     try {
       final token = await _getToken();
-      
+
       if (token == null || token.isEmpty) {
         throw Exception('No active session. Please log in again.');
       }
-      
+
       final headers = await _authHeaders;
-      
+
       String url = '$baseUrl/categories';
       if (tipo != null) {
         url += '?tipo=$tipo';
       }
 
-      final response = await http.get(
-        Uri.parse(url),
-        headers: headers,
-      );
+      final response = await http.get(Uri.parse(url), headers: headers);
 
       if (response.statusCode == 401) {
         // Token expired or invalid
@@ -299,33 +296,58 @@ class ApiService {
   Future<Map<String, dynamic>> createTransaction({
     required double amount,
     required String description,
-    required String category,
+    required String category, // Este debe ser String
     String? categoryId,
-    required String type, // 'income' or 'expense'
-    String metodoPago = 'cash',
+    required String type, // 'income' o 'expense'
+    String metodoPago = 'efectivo',
   }) async {
     try {
+      // ✅ Debugging detallado
+      print('🔄 ApiService.createTransaction called with:');
+      print('  amount: $amount (${amount.runtimeType})');
+      print('  description: $description (${description.runtimeType})');
+      print('  category: $category (${category.runtimeType})');
+      print('  categoryId: $categoryId (${categoryId.runtimeType})');
+      print('  type: $type (${type.runtimeType})');
+      print('  metodoPago: $metodoPago (${metodoPago.runtimeType})');
+
+      final requestBody = {
+        'amount': amount,
+        'description': description,
+        'category': category,
+        'type': type,
+        'metodoPago': metodoPago,
+      };
+
+      // Solo agregar categoryId si no es null
+      if (categoryId != null) {
+        requestBody['categoryId'] = categoryId;
+      }
+
+      print('📤 Sending request body: $requestBody');
+
       final response = await http.post(
         Uri.parse('$baseUrl/transaction'),
         headers: await _authHeaders,
-        body: jsonEncode({
-          'amount': amount,
-          'description': description,
-          'category': category,
-          'categoryId': categoryId,
-          'type': type,
-          'metodoPago': metodoPago,
-        }),
+        body: jsonEncode(requestBody),
       );
+
+      print('📥 Response status: ${response.statusCode}');
+      print('📥 Response body: ${response.body}');
 
       final data = jsonDecode(response.body);
 
       if (response.statusCode == 201) {
+        print('✅ Transaction created successfully');
         return data;
       } else {
-        throw Exception(data['error'] ?? 'Error creating transaction');
+        print('❌ Error response: $data');
+        throw Exception(
+          data['error'] ?? data['message'] ?? 'Error creating transaction',
+        );
       }
     } catch (e) {
+      print('❌ Exception in createTransaction: $e');
       throw Exception('Connection error: $e');
     }
   }
@@ -333,18 +355,61 @@ class ApiService {
   // Obtener todas las transacciones
   Future<List<Map<String, dynamic>>> getTransactions() async {
     try {
+      print('🔄 ApiService.getTransactions called');
+      
+      final token = await _getToken();
+      print('🔑 Token: ${token?.substring(0, 20)}...'); // Solo primeros 20 caracteres
+
+      if (token == null || token.isEmpty) {
+        print('❌ No token found');
+        throw Exception('No active session. Please log in again.');
+      }
+
+      print('📤 Making GET request to: $baseUrl/transactions');
+      
       final response = await http.get(
         Uri.parse('$baseUrl/transactions'),
         headers: await _authHeaders,
       );
 
+      print('📥 Response status: ${response.statusCode}');
+      print('📥 Response headers: ${response.headers}');
+      print('📥 Response body: ${response.body}');
+
+      if (response.statusCode == 401) {
+        print('🔒 Token expired, removing...');
+        await _removeToken();
+        throw Exception('Session expired. Please log in again.');
+      }
+
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
-        return List<Map<String, dynamic>>.from(data['transactions']);
+        print('📋 Parsed data keys: ${data.keys.toList()}');
+        print('📋 Full data structure: $data');
+
+        // Manejo de ambas estructuras de respuesta
+        if (data['success'] == true && data['data'] != null) {
+          print('✅ Using new controller structure');
+          final transactions = data['data']['transactions'] ?? [];
+          print('📊 Found ${transactions.length} transactions');
+          return List<Map<String, dynamic>>.from(transactions);
+        } else if (data['transactions'] != null) {
+          print('✅ Using old controller structure');
+          final transactions = data['transactions'];
+          print('📊 Found ${transactions.length} transactions');
+          return List<Map<String, dynamic>>.from(transactions);
+        } else {
+          print('⚠️ No transactions found in response');
+          return [];
+        }
       } else {
-        throw Exception('Error getting transactions');
+        print('❌ Error response: ${response.body}');
+        final errorData = jsonDecode(response.body);
+        throw Exception(errorData['message'] ?? 'Error getting transactions');
       }
     } catch (e) {
+      print('❌ Exception in getTransactions: $e');
+      print('❌ Exception type: ${e.runtimeType}');
       throw Exception('Connection error: $e');
     }
   }

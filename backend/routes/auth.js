@@ -3,7 +3,7 @@ import { registerUser } from '../controllers/registerController.js';
 import { login, verifyAuth, logout } from '../controllers/authController.js'; // ✅ Importar login de authController
 import { updatePassword } from '../controllers/updatePassword.js';
 import { saveSalary, getProfile } from '../controllers/userController.js';
-import { addTransaction, getTransactionsSummary, resetMonthlyTransactions, getTransactions, updateTransaction, deleteTransaction } from '../controllers/transactionController.js';
+import { addTransaction, getTransactionsSummary, resetMonthlyTransactions, getTransactions, updateTransaction, deleteTransaction } from '../controllers/transactionController_new.js';
 
 // Solo define el router y las rutas
 const router = Router();

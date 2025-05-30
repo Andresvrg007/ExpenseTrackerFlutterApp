@@ -30,30 +30,71 @@ class Transaction {
 
   // Factory constructor to create Transaction from JSON
   factory Transaction.fromJson(Map<String, dynamic> json) {
-    return Transaction(
-      id: json['_id'] ?? json['id'],
-      userId: json['userId'] ?? '',
-      amount: (json['amount'] ?? 0).toDouble(),
-      category: json['category'] ?? '',
-      categoryId: json['categoryId'],
-      description: json['description'] ?? '',
-      tipo: json['tipo'] ?? json['type'] ?? '',
-      fecha: json['fecha'] != null
-          ? DateTime.parse(json['fecha'])
-          : json['date'] != null
-          ? DateTime.parse(json['date'])
-          : DateTime.now(),
-      etiquetas: json['etiquetas'] != null
-          ? List<String>.from(json['etiquetas'])
-          : null,
-      metodoPago: json['metodoPago'] ?? 'efectivo',
-      createdAt: json['createdAt'] != null
-          ? DateTime.parse(json['createdAt'])
-          : null,
-      updatedAt: json['updatedAt'] != null
-          ? DateTime.parse(json['updatedAt'])
-          : null,
-    );
+    try {
+      print('🔄 Parsing transaction: ${json['_id']}');
+      
+      // ✅ Manejo seguro de categoryId (puede ser String o Map)
+      String? categoryId;
+      if (json['categoryId'] != null) {
+        if (json['categoryId'] is String) {
+          categoryId = json['categoryId'] as String;
+        } else if (json['categoryId'] is Map<String, dynamic>) {
+          categoryId = json['categoryId']['_id'] as String?;
+        }
+      }
+
+      // ✅ Manejo seguro de fecha
+      DateTime fecha;
+      if (json['fecha'] is String) {
+        fecha = DateTime.parse(json['fecha']);
+      } else {
+        fecha = DateTime.now();
+      }
+
+      // ✅ Manejo seguro de amount (puede venir como int o double)
+      double amount;
+      if (json['amount'] is int) {
+        amount = (json['amount'] as int).toDouble();
+      } else {
+        amount = json['amount'] as double;
+      }
+
+      // ✅ Manejo seguro de userId (ESTE ERA EL PROBLEMA)
+      String userId = json['userId'] as String? ?? '';
+
+      // ✅ Manejo seguro de createdAt y updatedAt
+      DateTime? createdAt;
+      if (json['createdAt'] != null) {
+        createdAt = DateTime.parse(json['createdAt']);
+      }
+
+      DateTime? updatedAt;
+      if (json['updatedAt'] != null) {
+        updatedAt = DateTime.parse(json['updatedAt']);
+      }
+
+      final transaction = Transaction(
+        id: json['_id'] as String?,
+        userId: userId, // ✅ AGREGADO - Era requerido pero faltaba
+        amount: amount,
+        description: json['description'] as String,
+        category: json['category'] as String,
+        categoryId: categoryId,
+        tipo: json['tipo'] as String,
+        fecha: fecha,
+        metodoPago: json['metodoPago'] as String? ?? 'efectivo',
+        etiquetas: List<String>.from(json['etiquetas'] ?? []),
+        createdAt: createdAt, // ✅ AGREGADO
+        updatedAt: updatedAt,  // ✅ AGREGADO
+      );
+
+      print('✅ Transaction parsed successfully: ${transaction.description}');
+      return transaction;
+    } catch (e) {
+      print('❌ Error parsing transaction: $e');
+      print('❌ JSON data: $json');
+      rethrow;
+    }
   }
 
   // Method to convert Transaction to JSON

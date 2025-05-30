@@ -1,22 +1,50 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../viewmodels/auth_viewmodel.dart';
+import '../viewmodels/transaction_viewmodel.dart';
 import 'categories_view.dart';
 import 'transactions_view.dart';
+import 'package:intl/intl.dart';
 
-class DashboardView extends StatelessWidget {
+class DashboardView extends StatefulWidget {
   const DashboardView({super.key});
+
+  @override
+  State<DashboardView> createState() => _DashboardViewState();
+}
+
+class _DashboardViewState extends State<DashboardView> {
+  final NumberFormat _currencyFormat = NumberFormat.currency(
+    locale: 'es_CO',
+    symbol: '\$',
+    decimalDigits: 0,
+  );
+
+  @override
+  void initState() {
+    super.initState();
+    // Cargar transacciones al iniciar
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      context.read<TransactionViewModel>().loadTransactions();
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Dashboard'),
-        backgroundColor: Colors.green[700], // ✅ Cambio a verde
+        backgroundColor: Colors.green[700],
         foregroundColor: Colors.white,
         automaticallyImplyLeading: false,
         elevation: 0,
         actions: [
+          IconButton(
+            icon: const Icon(Icons.refresh),
+            onPressed: () {
+              context.read<TransactionViewModel>().loadTransactions();
+            },
+          ),
           IconButton(
             icon: const Icon(Icons.logout),
             onPressed: () async {
@@ -33,8 +61,8 @@ class DashboardView extends StatelessWidget {
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
             colors: [
-              Colors.green[700]!, // ✅ Cambio a verde
-              Colors.green[50]!,  // ✅ Cambio a verde claro
+              Colors.green[700]!,
+              Colors.green[50]!,
             ],
           ),
         ),
@@ -44,7 +72,7 @@ class DashboardView extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Welcome Section with gradient background
+                // Welcome Section
                 Container(
                   width: double.infinity,
                   decoration: BoxDecoration(
@@ -53,7 +81,7 @@ class DashboardView extends StatelessWidget {
                       end: Alignment.bottomRight,
                       colors: [
                         Colors.white,
-                        Colors.green[50]!, // ✅ Cambio a verde
+                        Colors.green[50]!,
                       ],
                     ),
                     borderRadius: BorderRadius.circular(16),
@@ -75,12 +103,12 @@ class DashboardView extends StatelessWidget {
                             Container(
                               padding: const EdgeInsets.all(12),
                               decoration: BoxDecoration(
-                                color: Colors.green[100], // ✅ Cambio a verde
+                                color: Colors.green[100],
                                 shape: BoxShape.circle,
                               ),
                               child: Icon(
                                 Icons.waving_hand,
-                                color: Colors.green[700], // ✅ Cambio a verde
+                                color: Colors.green[700],
                                 size: 32,
                               ),
                             ),
@@ -93,7 +121,7 @@ class DashboardView extends StatelessWidget {
                                     'Welcome back!',
                                     style: Theme.of(context).textTheme.headlineSmall?.copyWith(
                                       fontWeight: FontWeight.bold,
-                                      color: Colors.green[800], // ✅ Cambio a verde
+                                      color: Colors.green[800],
                                     ),
                                   ),
                                   const SizedBox(height: 4),
@@ -115,62 +143,137 @@ class DashboardView extends StatelessWidget {
                 
                 const SizedBox(height: 24),
                 
-                // Financial Summary Section
-                Container(
-                  width: double.infinity,
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(16),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withOpacity(0.1),
-                        blurRadius: 10,
-                        offset: const Offset(0, 4),
-                      ),
-                    ],
-                  ),
-                  child: Padding(
-                    padding: const EdgeInsets.all(20.0),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'Financial Summary',
-                          style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                            fontWeight: FontWeight.bold,
-                            color: Colors.grey[800],
+                // Financial Summary Section - MÁS COMPACTO
+                Consumer<TransactionViewModel>(
+                  builder: (context, transactionViewModel, child) {
+                    return Container(
+                      width: double.infinity,
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(16),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withOpacity(0.1),
+                            blurRadius: 10,
+                            offset: const Offset(0, 4),
                           ),
-                        ),
-                        const SizedBox(height: 20),
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceAround,
+                        ],
+                      ),
+                      child: Padding(
+                        padding: const EdgeInsets.all(16.0), // ✅ Reducido de 20 a 16
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            _buildSummaryItem(
-                              context,
-                              'Balance',
-                              '\$2,350.00',
-                              Colors.green[600]!, // ✅ Cambio a verde para balance
-                              Icons.account_balance_wallet,
+                            // ✅ Header más compacto
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Text(
+                                  'Financial Summary',
+                                  style: Theme.of(context).textTheme.titleMedium?.copyWith( // ✅ Cambiado de titleLarge a titleMedium
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.grey[800],
+                                  ),
+                                ),
+                                if (transactionViewModel.isLoading)
+                                  SizedBox(
+                                    width: 16, // ✅ Reducido de 20 a 16
+                                    height: 16, // ✅ Reducido de 20 a 16
+                                    child: CircularProgressIndicator(
+                                      strokeWidth: 2,
+                                      color: Colors.green[600],
+                                    ),
+                                  ),
+                              ],
                             ),
-                            _buildSummaryItem(
-                              context,
-                              'Income',
-                              '\$3,200.00',
-                              Colors.green[600]!, // ✅ Mantener verde para income
-                              Icons.trending_up,
+                            const SizedBox(height: 12), // ✅ Reducido de 20 a 12
+                            
+                            // ✅ Error más compacto
+                            if (transactionViewModel.errorMessage != null) ...[
+                              Container(
+                                width: double.infinity,
+                                padding: const EdgeInsets.all(8), // ✅ Reducido de 12 a 8
+                                decoration: BoxDecoration(
+                                  color: Colors.red[50],
+                                  borderRadius: BorderRadius.circular(8),
+                                  border: Border.all(color: Colors.red[200]!),
+                                ),
+                                child: Row(
+                                  children: [
+                                    Icon(Icons.error_outline, color: Colors.red[600], size: 16), // ✅ Reducido de 20 a 16
+                                    const SizedBox(width: 6), // ✅ Reducido de 8 a 6
+                                    Expanded(
+                                      child: Text(
+                                        'Error loading data: ${transactionViewModel.errorMessage}',
+                                        style: TextStyle(color: Colors.red[600], fontSize: 11), // ✅ Reducido de 12 a 11
+                                      ),
+                                    ),
+                                    TextButton(
+                                      style: TextButton.styleFrom(
+                                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4), // ✅ Padding más pequeño
+                                        minimumSize: Size.zero,
+                                        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                                      ),
+                                      onPressed: () => transactionViewModel.loadTransactions(),
+                                      child: Text('Retry', style: TextStyle(color: Colors.red[600], fontSize: 11)),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              const SizedBox(height: 8), // ✅ Reducido de 16 a 8
+                            ],
+                            
+                            // ✅ Summary Cards más compactos
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceAround,
+                              children: [
+                                _buildSummaryItem(
+                                  context,
+                                  'Balance',
+                                  _currencyFormat.format(transactionViewModel.balance),
+                                  transactionViewModel.balance >= 0 ? Colors.green[600]! : Colors.red[600]!,
+                                  Icons.account_balance_wallet,
+                                ),
+                                _buildSummaryItem(
+                                  context,
+                                  'Income',
+                                  _currencyFormat.format(transactionViewModel.totalIncome),
+                                  Colors.green[600]!,
+                                  Icons.trending_up,
+                                ),
+                                _buildSummaryItem(
+                                  context,
+                                  'Expenses',
+                                  _currencyFormat.format(transactionViewModel.totalExpenses),
+                                  Colors.red[600]!,
+                                  Icons.trending_down,
+                                ),
+                              ],
                             ),
-                            _buildSummaryItem(
-                              context,
-                              'Expenses',
-                              '\$850.00',
-                              Colors.red[600]!, // ✅ Mantener rojo para expenses
-                              Icons.trending_down,
+                            
+                            const SizedBox(height: 8), // ✅ Reducido de 16 a 8
+                            
+                            // ✅ Info chips más compactos
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceAround,
+                              children: [
+                                _buildInfoChip(
+                                  'Transactions',
+                                  '${transactionViewModel.transactions.length}',
+                                  Colors.blue[600]!,
+                                ),
+                                _buildInfoChip(
+                                  'This Month',
+                                  '${transactionViewModel.getCurrentMonthTransactions().length}',
+                                  Colors.purple[600]!,
+                                ),
+                              ],
                             ),
                           ],
                         ),
-                      ],
-                    ),
-                  ),
+                      ),
+                    );
+                  },
                 ),
                 
                 const SizedBox(height: 24),
@@ -189,18 +292,18 @@ class DashboardView extends StatelessWidget {
                 
                 const SizedBox(height: 16),
                 
-                // Quick Actions Grid - OVERFLOW ARREGLADO
+                // Quick Actions Grid
                 Expanded(
                   child: GridView.count(
                     crossAxisCount: 2,
                     crossAxisSpacing: 12,
                     mainAxisSpacing: 12,
-                    childAspectRatio: 1.2, // ✅ Aumentado de 1.1 a 1.2 para más altura
+                    childAspectRatio: 1.2,
                     children: [
                       _buildActionCard(
                         context,
                         'Categories',
-                        'Manage categories', // ✅ Texto más corto
+                        'Manage categories',
                         Icons.category,
                         Colors.orange[600]!,
                         () {
@@ -213,7 +316,7 @@ class DashboardView extends StatelessWidget {
                       _buildActionCard(
                         context,
                         'Transactions',
-                        'Manage transactions', // ✅ Texto más corto
+                        'Manage transactions',
                         Icons.receipt_long,
                         Colors.purple[600]!,
                         () {
@@ -266,7 +369,7 @@ class DashboardView extends StatelessWidget {
     IconData icon,
   ) {
     return Container(
-      padding: const EdgeInsets.all(12),
+      padding: const EdgeInsets.all(8), // ✅ Reducido de 12 a 8
       decoration: BoxDecoration(
         color: color.withOpacity(0.1),
         borderRadius: BorderRadius.circular(12),
@@ -278,22 +381,66 @@ class DashboardView extends StatelessWidget {
           Icon(
             icon,
             color: color,
-            size: 28,
+            size: 20, // ✅ Reducido de 28 a 20
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: 4), // ✅ Reducido de 8 a 4
           Text(
             title,
             style: Theme.of(context).textTheme.bodySmall?.copyWith(
               color: Colors.grey[600],
               fontWeight: FontWeight.w500,
+              fontSize: 10, // ✅ Reducido
             ),
           ),
-          const SizedBox(height: 4),
+          const SizedBox(height: 2), // ✅ Reducido de 4 a 2
           Text(
             amount,
             style: Theme.of(context).textTheme.titleMedium?.copyWith(
               fontWeight: FontWeight.bold,
               color: color,
+              fontSize: 11, // ✅ Reducido de 13 a 11
+            ),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildInfoChip(String label, String value, Color color) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4), // ✅ Reducido
+      decoration: BoxDecoration(
+        color: color.withOpacity(0.1),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: color.withOpacity(0.3)),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(
+            label,
+            style: TextStyle(
+              color: color,
+              fontWeight: FontWeight.w500,
+              fontSize: 10, // ✅ Reducido de 12 a 10
+            ),
+          ),
+          const SizedBox(width: 3), // ✅ Reducido de 4 a 3
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1), // ✅ Reducido
+            decoration: BoxDecoration(
+              color: color,
+              borderRadius: BorderRadius.circular(8), // ✅ Reducido de 10 a 8
+            ),
+            child: Text(
+              value,
+              style: const TextStyle(
+                color: Colors.white,
+                fontWeight: FontWeight.bold,
+                fontSize: 9, // ✅ Reducido de 10 a 9
+              ),
             ),
           ),
         ],
@@ -327,38 +474,38 @@ class DashboardView extends StatelessWidget {
           onTap: onTap,
           borderRadius: BorderRadius.circular(16),
           child: Padding(
-            padding: const EdgeInsets.all(14.0), // ✅ Reducido de 16 a 14
+            padding: const EdgeInsets.all(14.0),
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 Container(
-                  padding: const EdgeInsets.all(10), // ✅ Reducido de 12 a 10
+                  padding: const EdgeInsets.all(10),
                   decoration: BoxDecoration(
                     color: color.withOpacity(0.1),
                     shape: BoxShape.circle,
                   ),
                   child: Icon(
                     icon,
-                    size: 28, // ✅ Reducido de 32 a 28
+                    size: 28,
                     color: color,
                   ),
                 ),
-                const SizedBox(height: 10), // ✅ Reducido de 12 a 10
+                const SizedBox(height: 10),
                 Text(
                   title,
                   style: Theme.of(context).textTheme.titleSmall?.copyWith(
                     fontWeight: FontWeight.bold,
                     color: Colors.grey[800],
-                    fontSize: 13, // ✅ Tamaño específico
+                    fontSize: 13,
                   ),
                   textAlign: TextAlign.center,
                 ),
-                const SizedBox(height: 4), // ✅ Reducido de 6 a 4
+                const SizedBox(height: 4),
                 Text(
                   subtitle,
                   style: Theme.of(context).textTheme.bodySmall?.copyWith(
                     color: Colors.grey[600],
-                    fontSize: 10, // ✅ Reducido de 11 a 10
+                    fontSize: 10,
                   ),
                   textAlign: TextAlign.center,
                   maxLines: 2,
