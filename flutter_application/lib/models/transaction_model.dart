@@ -32,8 +32,8 @@ class Transaction {
   factory Transaction.fromJson(Map<String, dynamic> json) {
     try {
       print('🔄 Parsing transaction: ${json['_id']}');
-      
-      // ✅ Manejo seguro de categoryId (puede ser String o Map)
+
+      //  Manejo seguro de categoryId (puede ser String o Map)
       String? categoryId;
       if (json['categoryId'] != null) {
         if (json['categoryId'] is String) {
@@ -43,7 +43,7 @@ class Transaction {
         }
       }
 
-      // ✅ Manejo seguro de fecha
+      //  Manejo seguro de fecha
       DateTime fecha;
       if (json['fecha'] is String) {
         fecha = DateTime.parse(json['fecha']);
@@ -51,7 +51,7 @@ class Transaction {
         fecha = DateTime.now();
       }
 
-      // ✅ Manejo seguro de amount (puede venir como int o double)
+      //  Manejo seguro de amount (puede venir como int o double)
       double amount;
       if (json['amount'] is int) {
         amount = (json['amount'] as int).toDouble();
@@ -59,10 +59,10 @@ class Transaction {
         amount = json['amount'] as double;
       }
 
-      // ✅ Manejo seguro de userId (ESTE ERA EL PROBLEMA)
+      //  Manejo seguro de userId (ESTE ERA EL PROBLEMA)
       String userId = json['userId'] as String? ?? '';
 
-      // ✅ Manejo seguro de createdAt y updatedAt
+      //  Manejo seguro de createdAt y updatedAt
       DateTime? createdAt;
       if (json['createdAt'] != null) {
         createdAt = DateTime.parse(json['createdAt']);
@@ -85,7 +85,7 @@ class Transaction {
         metodoPago: json['metodoPago'] as String? ?? 'efectivo',
         etiquetas: List<String>.from(json['etiquetas'] ?? []),
         createdAt: createdAt, // ✅ AGREGADO
-        updatedAt: updatedAt,  // ✅ AGREGADO
+        updatedAt: updatedAt, // ✅ AGREGADO
       );
 
       print('✅ Transaction parsed successfully: ${transaction.description}');

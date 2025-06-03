@@ -1,7 +1,7 @@
 import { Router } from 'express';
 import { registerUser } from '../controllers/registerController.js';
-import { login, verifyAuth, logout } from '../controllers/authController.js'; // ✅ Importar login de authController
-import { updatePassword } from '../controllers/updatePassword.js';
+import { login, verifyAuth, logout } from '../controllers/authController.js';
+import { updatePassword, forgotPassword } from '../controllers/updatePassword.js'; // ✅ AGREGAR forgotPassword
 import { saveSalary, getProfile } from '../controllers/userController.js';
 import { addTransaction, getTransactionsSummary, resetMonthlyTransactions, getTransactions, updateTransaction, deleteTransaction } from '../controllers/transactionController_new.js';
 
@@ -13,6 +13,7 @@ router.post('/login', login);  // ✅ Usar login de authController
 router.get('/verify', verifyAuth);
 router.post('/logout', logout);
 router.post('/password', updatePassword);
+router.post('/forgot-password', forgotPassword); // ✅ AGREGAR ESTA LÍNEA
 router.post('/salary', saveSalary);
 router.get('/profile', getProfile);
 router.post('/transaction', addTransaction);

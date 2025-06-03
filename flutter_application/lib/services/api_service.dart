@@ -5,8 +5,15 @@ import '../models/user_model.dart';
 
 class ApiService {
   // URL base de tu backend (cambiar por tu IP/dominio)
-  // Para dispositivo físico usa la IP real de tu PC, para emulador usa 10.0.2.2
-  static const String baseUrl = 'http://10.0.0.23:5000/api';
+  // CONFIGURACIÓN DE IP - SOLUCIONES COMUNES:
+  // 1. Emulador Android: usa 10.0.2.2
+  // 2. Dispositivo físico: usa la IP real de tu PC (cmd -> ipconfig)
+  // 3. Si no funciona, prueba con: localhost, 127.0.0.1, o tu IP de red
+  // 4. Verifica que el backend esté corriendo en el puerto 5000
+  // 5. Desactiva firewall/antivirus temporalmente para pruebas  // Tu IP de red actual es: 172.20.10.6 (Wi-Fi) o 10.0.2.196 (Ethernet)
+  // Para dispositivo físico usa: http://10.0.2.196:5000/api
+  // Para emulador Android sigue usando: http://10.0.2.2:5000/api
+  static const String baseUrl = 'http://172.20.10.6:5000/api';
 
   // Headers comunes para todas las peticiones
   Map<String, String> get _headers => {'Content-Type': 'application/json'};

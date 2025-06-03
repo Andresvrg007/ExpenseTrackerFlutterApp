@@ -76,7 +76,7 @@ class AuthViewModel extends ChangeNotifier {
 
       final response = await _apiService.register(name, email, password);
 
-      // ✅ DETECTAR ÉXITO CORRECTAMENTE - CUALQUIER RESPUESTA QUE INDIQUE REGISTRO EXITOSO
+      //  DETECTAR ÉXITO CORRECTAMENTE - CUALQUIER RESPUESTA QUE INDIQUE REGISTRO EXITOSO
       final message = response['message']?.toString().toLowerCase() ?? '';
       final isSuccess =
           response['success'] == true ||
@@ -100,7 +100,7 @@ class AuthViewModel extends ChangeNotifier {
           return true;
         }
       } else {
-        // ✅ SOLO ES ERROR SI REALMENTE HAY UN ERROR
+        //  SOLO ES ERROR SI REALMENTE HAY UN ERROR
         final errorMsg =
             response['error'] ?? response['message'] ?? 'Registration failed';
         setError(errorMsg);
@@ -123,7 +123,7 @@ class AuthViewModel extends ChangeNotifier {
     notifyListeners();
   }
 
-  // ✅ AGREGAR ESTE MÉTODO - Forgot Password
+  //  AGREGAR ESTE MÉTODO - Forgot Password
   Future<bool> forgotPassword(String email, String newPassword) async {
     try {
       setLoading(true);
